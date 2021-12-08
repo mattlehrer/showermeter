@@ -1,5 +1,8 @@
-/*YF- S201 water Flow sensor code for Arduino */
-const int Output_Pin = 2;
+// Based on code from https://microcontrollerslab.com/water-flow-sensor-pinout-interfacing-with-arduino-measure-flow-rate/
+
+const int SENSOR_PIN = 2;
+/* YF-S201 water Flow sensor code for Arduino */
+const int PULSES_PER_LITER = 450; // https://www.seeedstudio.com/blog/2020/05/11/how-to-use-water-flow-sensor-with-arduino/
 
 volatile int  Pulse_Count;
 unsigned int  Liter_per_hour;
@@ -7,7 +10,7 @@ unsigned long Current_Time, Loop_Time;
 
 void setup()
 { 
-   pinMode(Output_Pin, INPUT);
+   pinMode(SENSOR_PIN, INPUT);
    Serial.begin(9600); 
    attachInterrupt(digitalPinToInterrupt(2), Detect_Rising_Edge, RISING);
                                      
