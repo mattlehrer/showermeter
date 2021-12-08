@@ -4,6 +4,12 @@ const int SENSOR_PIN = 2;
 /* YF-S201 water Flow sensor code for Arduino */
 const int PULSES_PER_LITER = 450; // https://www.seeedstudio.com/blog/2020/05/11/how-to-use-water-flow-sensor-with-arduino/
 
+// TODO: 
+// Add time of start
+// total pulses for entire shower
+// time of last pulse
+// end of shower output 10s after last pulse
+
 volatile int  Pulse_Count;
 unsigned int  Liter_per_hour;
 unsigned long Current_Time, Loop_Time;
