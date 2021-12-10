@@ -18,6 +18,9 @@ void setup()
 { 
    pinMode(SENSOR_PIN, INPUT);
    Serial.begin(9600); 
+	 // Most blog posts about this sensor use interrupt 0, but that is for the Arduino Uno.
+	 // The Micro has additional digitial interrupt pins, so we use digitalPinToInterrupt(2) instead.
+	 // More info here https://www.arduino.cc/en/Reference/AttachInterrupt
    attachInterrupt(digitalPinToInterrupt(2), Detect_Rising_Edge, RISING);
                                      
    Current_Time = millis();
