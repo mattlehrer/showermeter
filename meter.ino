@@ -4,13 +4,7 @@ const int SENSOR_PIN = 2;
 /* YF-S201 water Flow sensor code for Arduino */
 const int PULSES_PER_LITER = 450; // https://www.seeedstudio.com/blog/2020/05/11/how-to-use-water-flow-sensor-with-arduino/
 
-// TODO:
-// Add time of start
-// total pulses for entire shower
-// time of last pulse
-// end of shower output 10s after last pulse
-
-volatile int Pulse_Count;
+volatile int Pulse_Count, Total_Pulse_Count;
 unsigned int Liter_per_hour;
 unsigned int Shower_Seconds, Shower_Minutes;
 unsigned long Current_Time, Loop_Time, Start_Time, Most_Recent_Pulse_Time;
@@ -25,9 +19,10 @@ void setup()
 	attachInterrupt(digitalPinToInterrupt(2), Detect_Rising_Edge, RISING);
 
 	Current_Time = millis();
-	Start_Time = millis();
+	Start_Time = Current_Time;
 	Loop_Time = Current_Time;
 	Most_Recent_Pulse_Time = 0;
+	Total_Pulse_Count = 0;
 }
 
 void loop()
@@ -48,17 +43,22 @@ void loop()
 		Serial.println("10 seconds elapsed since last pulse");
 		Serial.println("Full shower statistics:");
 		Serial.print("Total pulses: ");
-		Serial.println(Pulse_Count);
+		Serial.println(Total_Pulse_Count);
 		Serial.print("Total liters: ");
-		Serial.println(Pulse_Count * PULSES_PER_LITER);
+		float totalLiters = (float)Total_Pulse_Count / (float)PULSES_PER_LITER;
+		Serial.print(totalLiters);
+		Serial.println("L");
 
-		Shower_Seconds = (Current_Time - Start_Time) / 1000;
+		Shower_Seconds = (Most_Recent_Pulse_Time - Start_Time) / 1000;
 		Shower_Minutes = Shower_Seconds / 60;
 
 		Serial.print("Total time: ");
 		Serial.print(Shower_Minutes);
 		Serial.print(":");
-		// TODO: format seconds to be 2 digits
+		if (Shower_Seconds % 60 < 10)
+		{
+			Serial.print("0");
+		}
 		Serial.println(Shower_Seconds % 60);
 
 		// Reset all variables for next shower
@@ -70,5 +70,6 @@ void loop()
 void Detect_Rising_Edge()
 {
 	Pulse_Count++;
+	Total_Pulse_Count++;
 	Most_Recent_Pulse_Time = millis();
 }
