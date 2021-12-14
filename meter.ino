@@ -4,7 +4,7 @@ const int SENSOR_PIN = 2;
 /* YF-S201 water Flow sensor code for Arduino */
 const int PULSES_PER_LITER = 450; // https://www.seeedstudio.com/blog/2020/05/11/how-to-use-water-flow-sensor-with-arduino/
 
-volatile int Pulse_Count, Total_Pulse_Count;
+volatile int Pulse_Count_in_Last_Second, Total_Pulse_Count;
 unsigned int Liter_per_hour;
 unsigned int Shower_Seconds, Shower_Minutes;
 unsigned long Current_Time, Loop_Time, Start_Time, Most_Recent_Pulse_Time;
@@ -31,8 +31,8 @@ void loop()
 	if (Current_Time >= (Loop_Time + 1000))
 	{
 		Loop_Time = Current_Time;
-		Liter_per_hour = (Pulse_Count * 60 / 7.5);
-		Pulse_Count = 0;
+		Liter_per_hour = (Pulse_Count_in_Last_Second * 60 / 7.5);
+		Pulse_Count_in_Last_Second = 0;
 		Serial.print(Liter_per_hour, DEC);
 		Serial.println(" Liter/hour");
 	}
@@ -40,13 +40,14 @@ void loop()
 	// Check for end of shower
 	if (Most_Recent_Pulse_Time > 0 && Current_Time >= (Most_Recent_Pulse_Time + 10000))
 	{
-		Serial.println("10 seconds elapsed since last pulse");
+		Serial.println("It has been 10 seconds elapsed since last water flow reading");
 		Serial.println("Full shower statistics:");
 		Serial.print("Total pulses: ");
 		Serial.println(Total_Pulse_Count);
 		Serial.print("Total liters: ");
-		float totalLiters = (float)Total_Pulse_Count / (float)PULSES_PER_LITER;
-		Serial.print(totalLiters);
+		// float Total_Liters = (float)Total_Pulse_Count / (float)PULSES_PER_LITER;
+		// Serial.print(Total_Liters);
+		Serial.print((float)Total_Pulse_Count / (float)PULSES_PER_LITER);
 		Serial.println("L");
 
 		Shower_Seconds = (Most_Recent_Pulse_Time - Start_Time) / 1000;
@@ -55,6 +56,7 @@ void loop()
 		Serial.print("Total time: ");
 		Serial.print(Shower_Minutes);
 		Serial.print(":");
+		// add 0 if single digit seconds
 		if (Shower_Seconds % 60 < 10)
 		{
 			Serial.print("0");
@@ -63,13 +65,13 @@ void loop()
 
 		// Reset all variables for next shower
 		Start_Time = millis();
-		Pulse_Count = 0;
+		Pulse_Count_in_Last_Second = 0;
 		Most_Recent_Pulse_Time = 0;
 	}
 }
 void Detect_Rising_Edge()
 {
-	Pulse_Count++;
+	Pulse_Count_in_Last_Second++;
 	Total_Pulse_Count++;
 	Most_Recent_Pulse_Time = millis();
 }
