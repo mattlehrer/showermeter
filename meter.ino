@@ -1,8 +1,10 @@
 // Based on code from https://microcontrollerslab.com/water-flow-sensor-pinout-interfacing-with-arduino-measure-flow-rate/
 
 const int SENSOR_PIN = 2;
-/* YF-S201 water Flow sensor code for Arduino */
-const int PULSES_PER_LITER = 450; // https://www.seeedstudio.com/blog/2020/05/11/how-to-use-water-flow-sensor-with-arduino/
+
+// specific to the YF-S201 water flow sensor
+// via https://www.seeedstudio.com/blog/2020/05/11/how-to-use-water-flow-sensor-with-arduino/
+const int PULSES_PER_LITER = 450;
 
 volatile int Pulse_Count_in_Last_Second, Total_Pulse_Count;
 unsigned int Liter_per_hour;
@@ -33,14 +35,16 @@ void loop()
 		Loop_Time = Current_Time;
 		Liter_per_hour = (Pulse_Count_in_Last_Second * 60 / 7.5);
 		Pulse_Count_in_Last_Second = 0;
-		Serial.print(Liter_per_hour, DEC);
-		Serial.println(" Liter/hour");
+		// Serial.print(Liter_per_hour, DEC);
+		// Serial.println(" Liter/hour");
+		Serial.print(Pulse_Count_in_Last_Second / 7.5, DEC);
+		Serial.println(" Liter/min");
 	}
 
 	// Check for end of shower
 	if (Most_Recent_Pulse_Time > 0 && Current_Time >= (Most_Recent_Pulse_Time + 10000))
 	{
-		Serial.println("It has been 10 seconds elapsed since last water flow reading");
+		Serial.println("10 seconds have elapsed since last water flow reading");
 		Serial.println("Full shower statistics:");
 		Serial.print("Total pulses: ");
 		Serial.println(Total_Pulse_Count);
@@ -64,13 +68,19 @@ void loop()
 		Serial.println(Shower_Seconds % 60);
 
 		// Reset all variables for next shower
-		Start_Time = millis();
-		Pulse_Count_in_Last_Second = 0;
+		Start_Time = 0;
 		Most_Recent_Pulse_Time = 0;
+		Pulse_Count_in_Last_Second = 0;
+		Total_Pulse_Count = 0;
 	}
 }
+
 void Detect_Rising_Edge()
 {
+	if (Total_Pulse_Count == 0)
+	{
+		Start_Time = millis();
+	}
 	Pulse_Count_in_Last_Second++;
 	Total_Pulse_Count++;
 	Most_Recent_Pulse_Time = millis();
