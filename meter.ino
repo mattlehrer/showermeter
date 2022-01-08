@@ -1,10 +1,14 @@
 // Based on code from https://microcontrollerslab.com/water-flow-sensor-pinout-interfacing-with-arduino-measure-flow-rate/
 
 const int SENSOR_PIN = 2;
+const int GREEN_LED_PIN = 4;
+const int RED_LED_PIN = 5;
 
 // specific to the YF-S201 water flow sensor
 // via https://www.seeedstudio.com/blog/2020/05/11/how-to-use-water-flow-sensor-with-arduino/
 const int PULSES_PER_LITER = 450;
+
+const int LONG_SHOWER_THRESHOLD = 25; // divide by PULSES_PER_LITER to get liters
 
 volatile int Pulse_Count_in_Last_Second, Total_Pulse_Count;
 unsigned int Liter_per_hour;
@@ -14,6 +18,8 @@ unsigned long Current_Time, Loop_Time, Start_Time, Most_Recent_Pulse_Time;
 void setup()
 {
 	pinMode(SENSOR_PIN, INPUT);
+	pinMode(GREEN_LED_PIN, OUTPUT);
+	pinMode(RED_LED_PIN, OUTPUT);
 	Serial.begin(9600);
 	// Most blog posts about this sensor use interrupt 0, but that is for the Arduino Uno.
 	// The Micro has additional digital interrupt pins, so we use digitalPinToInterrupt(2) instead.
@@ -25,6 +31,8 @@ void setup()
 	Loop_Time = Current_Time;
 	Most_Recent_Pulse_Time = 0;
 	Total_Pulse_Count = 0;
+	digitalWrite(GREEN_LED_PIN, LOW);
+	digitalWrite(RED_LED_PIN, LOW);
 }
 
 void loop()
@@ -34,11 +42,24 @@ void loop()
 	{
 		Loop_Time = Current_Time;
 		Liter_per_hour = (Pulse_Count_in_Last_Second * 60 / 7.5);
-		Pulse_Count_in_Last_Second = 0;
 		// Serial.print(Liter_per_hour, DEC);
-		// Serial.println(" Liter/hour");
-		Serial.print(Pulse_Count_in_Last_Second / 7.5, DEC);
-		Serial.println(" Liter/min");
+		// Serial.print(" Liter/hour; ");
+		if (Total_Pulse_Count > 0)
+		{
+			Serial.print(float(Pulse_Count_in_Last_Second) / 7.5);
+			Serial.println(" Liter/min");
+			Pulse_Count_in_Last_Second = 0;
+		}
+
+		if (Total_Pulse_Count > LONG_SHOWER_THRESHOLD)
+		{ // this is now a long shower, switch from green to red LED
+			digitalWrite(RED_LED_PIN, HIGH);
+			digitalWrite(GREEN_LED_PIN, LOW);
+		}
+		else if (Total_Pulse_Count > 0)
+		{
+			digitalWrite(GREEN_LED_PIN, HIGH);
+		}
 	}
 
 	// Check for end of shower
@@ -66,12 +87,15 @@ void loop()
 			Serial.print("0");
 		}
 		Serial.println(Shower_Seconds % 60);
+		Serial.println("*********");
 
 		// Reset all variables for next shower
 		Start_Time = 0;
 		Most_Recent_Pulse_Time = 0;
 		Pulse_Count_in_Last_Second = 0;
 		Total_Pulse_Count = 0;
+		digitalWrite(GREEN_LED_PIN, LOW);
+		digitalWrite(RED_LED_PIN, LOW);
 	}
 }
 
@@ -80,6 +104,8 @@ void Detect_Rising_Edge()
 	if (Total_Pulse_Count == 0)
 	{
 		Start_Time = millis();
+		Serial.println("*********");
+		Serial.println("Starting a new shower");
 	}
 	Pulse_Count_in_Last_Second++;
 	Total_Pulse_Count++;

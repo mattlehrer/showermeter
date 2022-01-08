@@ -1,5 +1,5 @@
 {
-    "port": "/dev/cu.usbmodem11101",
+    "port": "/dev/cu.usbmodem111101",
     "board": "arduino:avr:micro",
     "programmer": "arduino:avrisp",
     "sketch": "meter.ino"
