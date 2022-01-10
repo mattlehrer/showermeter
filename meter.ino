@@ -26,9 +26,6 @@ void setup()
 	// More info here https://www.arduino.cc/en/Reference/AttachInterrupt
 	attachInterrupt(digitalPinToInterrupt(2), Detect_Rising_Edge, RISING);
 
-	Current_Time = millis();
-	Start_Time = Current_Time;
-	Loop_Time = Current_Time;
 	Most_Recent_Pulse_Time = 0;
 	Total_Pulse_Count = 0;
 	digitalWrite(GREEN_LED_PIN, LOW);
@@ -41,11 +38,9 @@ void loop()
 	if (Current_Time >= (Loop_Time + 1000))
 	{
 		Loop_Time = Current_Time;
-		Liter_per_hour = (Pulse_Count_in_Last_Second * 60 / 7.5);
-		// Serial.print(Liter_per_hour, DEC);
-		// Serial.print(" Liter/hour; ");
+
 		if (Total_Pulse_Count > 0)
-		{
+		{ // Only send data if a shower is currently active
 			Serial.print(float(Pulse_Count_in_Last_Second) / 7.5);
 			Serial.println(" Liter/min");
 			Pulse_Count_in_Last_Second = 0;
@@ -102,7 +97,7 @@ void loop()
 void Detect_Rising_Edge()
 {
 	if (Total_Pulse_Count == 0)
-	{
+	{ // if this is the first pulse of a shower, start the timer
 		Start_Time = millis();
 		Serial.println("*********");
 		Serial.println("Starting a new shower");
