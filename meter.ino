@@ -65,8 +65,6 @@ void loop()
 		Serial.print("Total pulses: ");
 		Serial.println(Total_Pulse_Count);
 		Serial.print("Total liters: ");
-		// float Total_Liters = (float)Total_Pulse_Count / (float)PULSES_PER_LITER;
-		// Serial.print(Total_Liters);
 		Serial.print((float)Total_Pulse_Count / (float)PULSES_PER_LITER);
 		Serial.println("L");
 
